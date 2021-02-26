@@ -1,5 +1,5 @@
 const express = require("express");
-const members = require("../../data");
+let members = require("../../data");
 const { v4: uuid } = require("uuid");
 
 const router = express.Router();
@@ -9,7 +9,7 @@ router.get("/", (req, res) => res.json(members));
 
 //get single member
 router.get("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
 
   const found = members.find((member) => member.id == id);
 
@@ -37,6 +37,7 @@ router.post("/", (req, res) => {
 
   if (!newMember.name || !newMember.email) {
     res.status(400).json({ msg: "Please include a name and email" });
+    return;
   }
   members.push(newMember);
   res.json(members);
@@ -44,27 +45,24 @@ router.post("/", (req, res) => {
 
 //update single member
 router.put("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id;
 
   const found = members.find((member) => member.id == id);
+  console.log(id, found);
 
   if (!found) {
     res.status(400).json({ msg: `No member with the id of ${id}` });
-    res.send("no id inshalllaaaahh");
-    return;
   }
 
   const newName = req.body.name;
   const newemail = req.body.email;
 
   if (!newName) {
-    console.log("please a name");
-    return;
+    return console.log("please provide a name");
   }
 
   if (!newemail) {
-    console.log("please an email");
-    return;
+    return console.log("please provide an email");
   }
 
   const memberToUpdate = members.find((member) => member.id == id);
@@ -73,7 +71,26 @@ router.put("/:id", (req, res) => {
   memberToUpdate.email = newemail;
 
   res.status(200);
-  res.json({ msg: "member updayed", members });
+  res.json({ msg: "member updated", members });
+});
+
+router.delete("/:id", (req, res) => {
+  const id = req.params.id;
+
+  if (!id) {
+    res.status(400);
+    res.send("please provide an ID");
+    return;
+  }
+  console.log(id);
+  membersToKeep = members.filter((member) => member.id != id);
+  console.log(membersToKeep);
+  if (!membersToKeep) {
+    res.status(400);
+    res.send(`No member available with id: ${id}`);
+    return;
+  }
+  res.json({ msg: "member deleted", membersToKeep });
 });
 
 module.exports = router;
